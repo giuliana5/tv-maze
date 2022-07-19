@@ -12,27 +12,44 @@ const $searchForm = $("#search-form");
  *    (if no image URL given by API, put in a default image URL)
  */
 
-async function getShowsByTerm( /* term */) {
+async function getShowsByTerm(term) {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
+  const res = await axios.get(`https://api.tvmaze.com/search/shows?q=${term}`)
+  const showList = []
+  res.data.forEach((element) => {
+    const showDetails = element.show;
+    let img = showDetails.image;
+    let summary = showDetails.summary;
 
+    img = img === null ? "https://store-images.s-microsoft.com/image/apps.65316.13510798887490672.6e1ebb25-96c8-4504-b714-1f7cbca3c5ad.f9514a23-1eb8-4916-a18e-99b1a9817d15?mode=scale&q=90&h=300&w=300" : showDetails.image.original;
+
+    summary = summary === null ? " " : showDetails.summary;
+
+    const {id, name} = showDetails
+    showList.push({id, name, img, summary})
+  })
+  return showList;
+
+  /*
   return [
     {
       id: 1767,
       name: "The Bletchley Circle",
       summary:
-        `<p><b>The Bletchley Circle</b> follows the journey of four ordinary 
+        `<p><b>The Bletchley Circle</b> follows the journey of four ordinary
            women with extraordinary skills that helped to end World War II.</p>
-         <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their 
-           normal lives, modestly setting aside the part they played in 
-           producing crucial intelligence, which helped the Allies to victory 
+         <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their
+           normal lives, modestly setting aside the part they played in
+           producing crucial intelligence, which helped the Allies to victory
            and shortened the war. When Susan discovers a hidden code behind an
-           unsolved murder she is met by skepticism from the police. She 
+           unsolved murder she is met by skepticism from the police. She
            quickly realises she can only begin to crack the murders and bring
            the culprit to justice with her former friends.</p>`,
       image:
           "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
     }
   ]
+  */
 }
 
 
@@ -45,9 +62,9 @@ function populateShows(shows) {
     const $show = $(
         `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
-           <img 
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg" 
-              alt="Bletchly Circle San Francisco" 
+           <img
+              src="${show.img}"
+              alt="${show.name}"
               class="w-25 mr-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -56,7 +73,7 @@ function populateShows(shows) {
                Episodes
              </button>
            </div>
-         </div>  
+         </div>
        </div>
       `);
 
@@ -69,7 +86,7 @@ function populateShows(shows) {
  */
 
 async function searchForShowAndDisplay() {
-  const term = $("#searchForm-term").val();
+  const term = $("#search-query").val();
   const shows = await getShowsByTerm(term);
 
   $episodesArea.hide();
